@@ -21,9 +21,12 @@ class AppState: ObservableObject {
     
     func show() {
         apps = AppModel.getRunningApps()
-        selectedIndex = 0
         searchText = ""
+        // Pre-select the SECOND app (index 1) so Cmd+Tab toggles between last two
+        selectedIndex = apps.count > 1 ? 1 : 0
         isVisible = true
+        print("Showing switcher with \(apps.count) apps, selected: \(selectedIndex)")
+        print("Apps: \(apps.map { $0.name })")
     }
     
     func hide() {
@@ -39,6 +42,16 @@ class AppState: ObservableObject {
         }
         let app = appsToShow[selectedIndex]
         
+        print("Activating: \(app.name)")
+        
+        if let runningApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == app.id }) {
+            runningApp.activate()
+        }
+        hide()
+    }
+    
+    func activateApp(_ app: AppModel) {
+        print("Activating (click): \(app.name)")
         if let runningApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == app.id }) {
             runningApp.activate()
         }
@@ -47,7 +60,6 @@ class AppState: ObservableObject {
     
     func handleKeyPress(_ characters: String) {
         let newSearchText = searchText + characters.lowercased()
-        // Only update if it would still match something
         let wouldMatch = apps.contains { $0.name.lowercased().contains(newSearchText) }
         if wouldMatch {
             searchText = newSearchText

@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct CmdTabTypeApp: App {
     @StateObject private var appState = AppState.shared
+    private let appHistory = AppHistory.shared  // Initialize early
     private let keyboardMonitor: KeyboardMonitor
     private let switcherPanel: SwitcherPanel
     

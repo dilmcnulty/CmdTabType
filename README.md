@@ -20,7 +20,7 @@ cd CmdTabType
 xcodebuild -scheme CmdTabType -configuration Release -derivedDataPath build
 
 # Copy to Applications
-cp -r build/Build/Products/Release/CmdTabType.app /Applications/Or open `CmdTabType.xcodeproj` in Xcode, press Cmd+B to build, then find the app in Products and drag it to Applications.
+cp -r build/Build/Products/Release/CmdTabType.app /Applications/ Or open `CmdTabType.xcodeproj` in Xcode, press Cmd+B to build, then find the app in Products and drag it to Applications.
 
 ### Step 2: Grant Accessibility Permissions
 
