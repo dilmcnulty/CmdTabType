@@ -15,7 +15,7 @@ class AppState: ObservableObject {
             return apps
         }
         return apps.filter { app in
-            app.name.lowercased().hasPrefix(searchText.lowercased())
+            app.name.lowercased().contains(searchText.lowercased())
         }
     }
     
@@ -48,7 +48,7 @@ class AppState: ObservableObject {
     func handleKeyPress(_ characters: String) {
         let newSearchText = searchText + characters.lowercased()
         // Only update if it would still match something
-        let wouldMatch = apps.contains { $0.name.lowercased().hasPrefix(newSearchText) }
+        let wouldMatch = apps.contains { $0.name.lowercased().contains(newSearchText) }
         if wouldMatch {
             searchText = newSearchText
             selectedIndex = 0
