@@ -1,17 +1,29 @@
-//
-//  CmdTabTypeApp.swift
-//  CmdTabType
-//
-//  Created by Dillon McNulty on 12/9/25.
-//
-
 import SwiftUI
 
 @main
 struct CmdTabTypeApp: App {
+    @StateObject private var appState = AppState.shared
+    private let keyboardMonitor: KeyboardMonitor
+    private let switcherPanel: SwitcherPanel
+    
+    init() {
+        let state = AppState.shared
+        keyboardMonitor = KeyboardMonitor(appState: state)
+        switcherPanel = SwitcherPanel(appState: state)
+        keyboardMonitor.start()
+    }
+    
     var body: some Scene {
         MenuBarExtra("CmdTabType", systemImage: "command") {
-            Text("Hello from the menu bar!")
+            VStack {
+                Text("CmdTabType is running")
+                    .padding()
+                Divider()
+                Button("Quit") {
+                    NSApplication.shared.terminate(nil)
+                }
+                .keyboardShortcut("q")
+            }
         }
     }
 }
