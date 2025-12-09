@@ -1,0 +1,18 @@
+// macOS system files
+.DS_Store
+
+//Xcode user-specific data (UI state, breakpoints, schemes)
+xcuserdata/
+*.xcuserstate
+
+//Build outputs
+DerivedData/
+build/
+.build/
+
+//Swift Package Manager (if you add dependencies later)
+.swiftpm/
+
+//Code signing (you don't want to share provisioning profiles)
+*.mobileprovision
+*.provisionprofile
