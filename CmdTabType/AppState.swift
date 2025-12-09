@@ -14,8 +14,13 @@ class AppState: ObservableObject {
         if searchText.isEmpty {
             return apps
         }
+        let search = searchText.lowercased()
         return apps.filter { app in
-            app.name.lowercased().contains(searchText.lowercased())
+            // Check if any word in the app name starts with the search text
+            let words = app.name.lowercased().split(separator: " ")
+            return words.contains { word in
+                word.hasPrefix(search)
+            }
         }
     }
     
@@ -60,7 +65,12 @@ class AppState: ObservableObject {
     
     func handleKeyPress(_ characters: String) {
         let newSearchText = searchText + characters.lowercased()
-        let wouldMatch = apps.contains { $0.name.lowercased().contains(newSearchText) }
+        let wouldMatch = apps.contains { app in
+            let words = app.name.lowercased().split(separator: " ")
+            return words.contains { word in
+                word.hasPrefix(newSearchText)
+            }
+        }
         if wouldMatch {
             searchText = newSearchText
             selectedIndex = 0
