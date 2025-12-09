@@ -16,3 +16,5 @@ build/
 //Code signing (you don't want to share provisioning profiles)
 *.mobileprovision
 *.provisionprofile
+
+*.xcodeproj/
