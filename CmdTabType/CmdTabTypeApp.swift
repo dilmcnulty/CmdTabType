@@ -10,8 +10,8 @@ import SwiftUI
 @main
 struct CmdTabTypeApp: App {
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra("CmdTabType", systemImage: "command") {
+            Text("Hello from the menu bar!")
         }
     }
 }
