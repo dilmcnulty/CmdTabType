@@ -41,6 +41,13 @@ Open `/Applications/CmdTabType.app`. You'll see a ⌘ icon in your menu bar.
 
 ---
 
+## Code Changes & Rebuilding
+
+If you'd like to experiment with changes to the build yourself, run this command to rebuild the project & immediately copy to your applications folder:
+`cd ~/code/swift/CmdTabType && xcodebuild -scheme CmdTabType -configuration Release -derivedDataPath build clean build && rm -rf /Applications/CmdTabType.app && cp -r "build/Build/Products/Release/CmdTabType.app" /Applications/` 
+
+---
+
 ## Usage
 
 | Action | Keys |
