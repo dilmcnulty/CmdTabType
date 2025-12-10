@@ -13,8 +13,8 @@ A macOS app switcher replacement that lets you type to filter apps while holding
 ### Step 1: Build the App
 
 # Clone the repo
-`git clone https://github.com/yourusername/CmdTabType.git`\ 
-`cd CmdTabType`
+```git clone https://github.com/yourusername/CmdTabType.git\ 
+cd CmdTabType```
 
 # Build the app
 `xcodebuild -scheme CmdTabType -configuration Release -derivedDataPath build`
