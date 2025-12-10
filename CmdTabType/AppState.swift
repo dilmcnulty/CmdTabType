@@ -9,11 +9,16 @@ class AppState: ObservableObject {
     @Published var selectedIndex = 0
     @Published var searchText = ""
     
+    // Cached screen for current session (computed once when shown)
+    var currentScreen: NSScreen = NSScreen.main ?? NSScreen.screens[0]
+    
     var filteredApps: [AppModel] {
         apps.filter { $0.matches(searchText) }
     }
     
     func show() {
+        // Cache the screen once (NSScreen.main is the screen with the key window - fast!)
+        currentScreen = NSScreen.main ?? NSScreen.screens[0]
         apps = AppModel.getRunningApps()
         searchText = ""
         selectedIndex = apps.count > 1 ? 1 : 0

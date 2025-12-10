@@ -73,21 +73,6 @@ final class SwitcherPanel {
     }
     
     private var currentScreen: NSScreen {
-        // Get the screen where the frontmost app's main window is
-        if let frontmostApp = NSWorkspace.shared.frontmostApplication,
-           let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] {
-            for window in windows {
-                guard let pid = window[kCGWindowOwnerPID as String] as? Int32,
-                      pid == frontmostApp.processIdentifier,
-                      let bounds = window[kCGWindowBounds as String] as? [String: CGFloat],
-                      let x = bounds["X"], let y = bounds["Y"] else { continue }
-                
-                let point = NSPoint(x: x, y: y)
-                if let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) {
-                    return screen
-                }
-            }
-        }
-        return NSScreen.main ?? NSScreen.screens[0]
+        appState.currentScreen
     }
 }
