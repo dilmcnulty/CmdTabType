@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 
-class AppHistory: ObservableObject {
+final class AppHistory {
     static let shared = AppHistory()
     
     private var recentBundleIds: [String] = []
@@ -14,19 +14,12 @@ class AppHistory: ObservableObject {
     }
     
     private func initializeFromRunningApps() {
-        // Get currently running apps, put frontmost first
-        let runningApps = NSWorkspace.shared.runningApplications
-            .filter { $0.activationPolicy == .regular && $0.bundleIdentifier != excludedBundleId }
+        let runningApps = regularApps
         
-        // Try to put the active app first
-        if let frontmost = NSWorkspace.shared.frontmostApplication,
-           let frontmostId = frontmost.bundleIdentifier {
-            recentBundleIds = [frontmostId]
-            for app in runningApps {
-                if let bundleId = app.bundleIdentifier, bundleId != frontmostId {
-                    recentBundleIds.append(bundleId)
-                }
-            }
+        if let frontmostId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier {
+            recentBundleIds = [frontmostId] + runningApps
+                .compactMap { $0.bundleIdentifier }
+                .filter { $0 != frontmostId }
         } else {
             recentBundleIds = runningApps.compactMap { $0.bundleIdentifier }
         }
@@ -35,66 +28,57 @@ class AppHistory: ObservableObject {
     private func startListening() {
         NSWorkspace.shared.notificationCenter
             .publisher(for: NSWorkspace.didActivateApplicationNotification)
-            .compactMap { notification -> String? in
+            .compactMap { [excludedBundleId] notification -> String? in
                 guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
                       app.activationPolicy == .regular,
                       let bundleId = app.bundleIdentifier,
-                      bundleId != self.excludedBundleId else {
-                    return nil
-                }
+                      bundleId != excludedBundleId else { return nil }
                 return bundleId
             }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] bundleId in
-                self?.recordActivation(bundleId)
-            }
+            .sink { [weak self] in self?.recordActivation($0) }
             .store(in: &cancellables)
     }
     
     private func recordActivation(_ bundleId: String) {
-        // Move to front (position 0)
         recentBundleIds.removeAll { $0 == bundleId }
         recentBundleIds.insert(bundleId, at: 0)
-        
-        // Limit size
         if recentBundleIds.count > 50 {
-            recentBundleIds = Array(recentBundleIds.prefix(50))
+            recentBundleIds.removeLast(recentBundleIds.count - 50)
         }
-        
-        print("App activated: \(bundleId), order: \(recentBundleIds.prefix(5))")
+    }
+    
+    private var regularApps: [NSRunningApplication] {
+        NSWorkspace.shared.runningApplications.filter {
+            $0.activationPolicy == .regular && $0.bundleIdentifier != excludedBundleId
+        }
     }
     
     func getOrderedApps() -> [AppModel] {
-        let runningApps = NSWorkspace.shared.runningApplications
-            .filter { $0.activationPolicy == .regular && $0.bundleIdentifier != excludedBundleId }
+        let running = regularApps
+        let runningIds = Set(running.compactMap { $0.bundleIdentifier })
         
-        let runningBundleIds = Set(runningApps.compactMap { $0.bundleIdentifier })
-        
-        var orderedBundleIds: [String] = []
+        var ordered: [String] = []
         var seen = Set<String>()
         
-        // Add from history (preserving order, only if still running)
-        for bundleId in recentBundleIds {
-            if runningBundleIds.contains(bundleId) && !seen.contains(bundleId) {
-                orderedBundleIds.append(bundleId)
-                seen.insert(bundleId)
+        // Add from history (if still running)
+        for id in recentBundleIds where runningIds.contains(id) && !seen.contains(id) {
+            ordered.append(id)
+            seen.insert(id)
+        }
+        
+        // Add any new apps not in history
+        for app in running {
+            if let id = app.bundleIdentifier, !seen.contains(id) {
+                ordered.append(id)
+                seen.insert(id)
             }
         }
         
-        // Add any newly launched apps not in history
-        for app in runningApps {
-            if let bundleId = app.bundleIdentifier, !seen.contains(bundleId) {
-                orderedBundleIds.append(bundleId)
-                seen.insert(bundleId)
-            }
-        }
-        
-        return orderedBundleIds.compactMap { bundleId in
-            guard let app = runningApps.first(where: { $0.bundleIdentifier == bundleId }),
+        return ordered.compactMap { bundleId in
+            guard let app = running.first(where: { $0.bundleIdentifier == bundleId }),
                   let name = app.localizedName,
-                  let icon = app.icon else {
-                return nil
-            }
+                  let icon = app.icon else { return nil }
             return AppModel(id: bundleId, name: name, icon: icon)
         }
     }

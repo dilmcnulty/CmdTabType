@@ -3,32 +3,32 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
     
-    // Calculate icon size based on app count and screen width
     private var iconSize: CGFloat {
         let appCount = max(appState.filteredApps.count, 1)
-        
-        // Get the screen where mouse is
-        let mouseLocation = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first { NSMouseInRect(mouseLocation, $0.frame, false) } ?? NSScreen.main ?? NSScreen.screens.first!
-        
-        let screenWidth = screen.visibleFrame.width
+        let screenWidth = currentScreen.visibleFrame.width
         let maxPanelWidth = screenWidth - 100
-        let padding: CGFloat = 40
-        let spacing: CGFloat = 12
-        let extraPerItem: CGFloat = 36
-        
-        let totalSpacing = CGFloat(max(appCount - 1, 0)) * spacing
-        let availableForIcons = maxPanelWidth - padding - totalSpacing
-        let maxIconSizeForCount = (availableForIcons / CGFloat(appCount)) - extraPerItem
-        
-        let minSize: CGFloat = 48
-        let maxSize: CGFloat = 128
-        
-        return min(max(maxIconSizeForCount, minSize), maxSize)
+        let totalSpacing = CGFloat(max(appCount - 1, 0)) * 12
+        let availablePerIcon = (maxPanelWidth - 40 - totalSpacing) / CGFloat(appCount) - 36
+        return min(max(availablePerIcon, 48), 128)
     }
     
-    private var textWidth: CGFloat {
-        return iconSize + 12
+    private var currentScreen: NSScreen {
+        // Get the screen where the frontmost app's main window is
+        if let frontmostApp = NSWorkspace.shared.frontmostApplication,
+           let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] {
+            for window in windows {
+                guard let pid = window[kCGWindowOwnerPID as String] as? Int32,
+                      pid == frontmostApp.processIdentifier,
+                      let bounds = window[kCGWindowBounds as String] as? [String: CGFloat],
+                      let x = bounds["X"], let y = bounds["Y"] else { continue }
+                
+                let point = NSPoint(x: x, y: y)
+                if let screen = NSScreen.screens.first(where: { $0.frame.contains(point) }) {
+                    return screen
+                }
+            }
+        }
+        return NSScreen.main ?? NSScreen.screens[0]
     }
     
     var body: some View {
@@ -50,12 +50,9 @@ struct ContentView: View {
                             app: app,
                             isSelected: index == appState.selectedIndex,
                             searchText: appState.searchText,
-                            iconSize: iconSize,
-                            textWidth: textWidth
+                            iconSize: iconSize
                         )
-                        .onTapGesture {
-                            appState.activateApp(app)
-                        }
+                        .onTapGesture { appState.activate(app) }
                     }
                 }
             }
@@ -71,7 +68,6 @@ struct AppIconView: View {
     let isSelected: Bool
     let searchText: String
     let iconSize: CGFloat
-    let textWidth: CGFloat
     
     var body: some View {
         VStack(spacing: 8) {
@@ -83,7 +79,7 @@ struct AppIconView: View {
             highlightedName
                 .font(iconSize < 64 ? .system(size: 9) : .caption)
                 .lineLimit(1)
-                .frame(width: textWidth)
+                .frame(width: iconSize + 12)
         }
         .padding(8)
         .background(
@@ -95,35 +91,14 @@ struct AppIconView: View {
     
     private var highlightedName: Text {
         let baseColor: Color = isSelected ? .accentColor : .primary
+        let weight: Font.Weight = isSelected ? .bold : .regular
         
-        guard !searchText.isEmpty else {
-            return Text(app.name)
-                .foregroundColor(baseColor)
-                .fontWeight(isSelected ? .bold : .regular)
+        guard let match = app.matchRange(for: searchText) else {
+            return Text(app.name).foregroundColor(baseColor).fontWeight(weight)
         }
         
-        let name = app.name
-        let searchLower = searchText.lowercased()
-        
-        let words = name.components(separatedBy: " ")
-        var charIndex = 0
-        
-        for word in words {
-            let wordLower = word.lowercased()
-            
-            if wordLower.hasPrefix(searchLower) {
-                let beforeMatch = String(name.prefix(charIndex))
-                let matchPart = String(name.dropFirst(charIndex).prefix(searchText.count))
-                let afterMatch = String(name.dropFirst(charIndex + searchText.count))
-                
-                return Text(beforeMatch).foregroundColor(baseColor) +
-                       Text(matchPart).foregroundColor(.orange).fontWeight(.bold) +
-                       Text(afterMatch).foregroundColor(baseColor)
-            }
-            
-            charIndex += word.count + 1
-        }
-        
-        return Text(name).foregroundColor(baseColor)
+        return Text(match.before).foregroundColor(baseColor) +
+               Text(match.match).foregroundColor(.orange).fontWeight(.bold) +
+               Text(match.after).foregroundColor(baseColor)
     }
 }
