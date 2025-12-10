@@ -13,14 +13,14 @@ A macOS app switcher replacement that lets you type to filter apps while holding
 ### Step 1: Build the App
 
 # Clone the repo
-git clone https://github.com/yourusername/CmdTabType.git
-cd CmdTabType
+`git clone https://github.com/yourusername/CmdTabType.git`\ 
+`cd CmdTabType`
 
 # Build the app
-xcodebuild -scheme CmdTabType -configuration Release -derivedDataPath build
+`xcodebuild -scheme CmdTabType -configuration Release -derivedDataPath build`
 
 # Copy to Applications
-cp -r build/Build/Products/Release/CmdTabType.app /Applications/ Or open `CmdTabType.xcodeproj` in Xcode, press Cmd+B to build, then find the app in Products and drag it to Applications.
+`cp -r build/Build/Products/Release/CmdTabType.app /Applications/` Or open `CmdTabType.xcodeproj` in Xcode, press Cmd+B to build, then find the app in Products and drag it to Applications.
 
 ### Step 2: Grant Accessibility Permissions
 
@@ -33,7 +33,9 @@ cp -r build/Build/Products/Release/CmdTabType.app /Applications/ Or open `CmdTab
 
 Run this command in Terminal:
 
-defaults write com.apple.Dock mcx-disabled -bool true && killall Dock### Step 4: Launch CmdTabType
+`defaults write com.apple.Dock mcx-disabled -bool true && killall Dock`
+
+### Step 4: Launch CmdTabType
 
 Open `/Applications/CmdTabType.app`. You'll see a ⌘ icon in your menu bar.
 
@@ -58,7 +60,9 @@ Open `/Applications/CmdTabType.app`. You'll see a ⌘ icon in your menu bar.
 
 ### Re-enable the System App Switcher
 
-defaults delete com.apple.Dock mcx-disabled && killall Dock### Remove the App
+`defaults delete com.apple.Dock mcx-disabled && killall Dock`
+
+### Remove the App
 
 1. Quit CmdTabType from the menu bar
 2. Delete `/Applications/CmdTabType.app`
@@ -88,8 +92,3 @@ defaults delete com.apple.Dock mcx-disabled && killall Dock### Remove the App
 - Check Console.app for error messages
 - Try removing and re-adding Accessibility permissions
 
----
-
-## License
-
-MIT
