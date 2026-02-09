@@ -17,11 +17,17 @@ A macOS app switcher replacement that lets you type to filter apps while holding
 git clone https://github.com/dilmcnulty/CmdTabType.git && cd CmdTabType
 ```
 
-# Build the app
-`xcodebuild -scheme CmdTabType -configuration Release -derivedDataPath build`
-
+# Build the application using Swift Package Manager
+# This will build the executable and place it in the .build/release directory,
+# then assemble it into CmdTabType.app in the project root.
+```bash
+swift build -c release
+mkdir -p CmdTabType.app/Contents/MacOS CmdTabType.app/Contents/Resources
+cp .build/release/CmdTabType CmdTabType.app/Contents/MacOS/CmdTabType
+cp -r CmdTabType/Assets.xcassets CmdTabType.app/Contents/Resources/
+```
 # Copy to Applications
-`cp -r build/Build/Products/Release/CmdTabType.app /Applications/` Or open `CmdTabType.xcodeproj` in Xcode, press Cmd+B to build, then find the app in Products and drag it to Applications.
+`cp -r CmdTabType.app /Applications/` Or open `CmdTabType.xcodeproj` in Xcode, press Cmd+B to build, then find the app in Products and drag it to Applications.
 
 ### Step 2: Grant Accessibility Permissions
 
@@ -45,7 +51,17 @@ Open `/Applications/CmdTabType.app`. You'll see a ⌘ icon in your menu bar.
 ## Code Changes & Rebuilding
 
 If you'd like to experiment with changes to the build yourself, run this command to rebuild the project & immediately copy to your applications folder:
-`cd ~/code/swift/CmdTabType && xcodebuild -scheme CmdTabType -configuration Release -derivedDataPath build clean build && rm -rf /Applications/CmdTabType.app && cp -r "build/Build/Products/Release/CmdTabType.app" /Applications/` 
+`# Clean, build, and deploy the application
+# This sequence cleans previous build products, builds the executable,
+# updates the .app bundle in the project root, and then
+# replaces the installed application in /Applications.
+swift package clean
+swift build -c release
+mkdir -p CmdTabType.app/Contents/MacOS CmdTabType.app/Contents/Resources
+cp .build/release/CmdTabType CmdTabType.app/Contents/MacOS/CmdTabType
+cp -r CmdTabType/Assets.xcassets CmdTabType.app/Contents/Resources/
+rm -rf /Applications/CmdTabType.app
+cp -r CmdTabType.app /Applications/` 
 
 ---
 
